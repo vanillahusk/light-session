@@ -1,5 +1,15 @@
 # ⚡ LightSession for ChatGPT
 
+> 本 Fork 在原 MIT 项目基础上增加中文界面与长对话阅读增强功能。原项目版权与许可证见 [LICENSE](LICENSE)。
+
+## 中文阅读增强
+
+- 自动保存并恢复每个会话上次阅读到的提问；仅在当前阅读轮次变化并稳定后写入一次，减少存储写入。
+- 将“用户提问 + 后续 ChatGPT 回答”视为一个阅读单元，并可一次复制完整问答。
+- 用醒目的提问卡片划分章节，右侧目录会自动高亮当前章节。
+- 点击目录后，目标提问会停在页面标题栏下方，不会被顶部栏遮挡。
+- 所有功能均可通过鼠标完成，不依赖键盘快捷键。
+
 Keep ChatGPT fast by keeping only the last N messages in the DOM.
 Local-only, privacy-first browser extension that fixes UI lag in long conversations.
 
@@ -13,7 +23,7 @@ Local-only, privacy-first browser extension that fixes UI lag in long conversati
 
 Long ChatGPT threads are brutal for the browser: the UI keeps every message in the DOM and the tab slowly turns into molasses — scroll becomes choppy, typing lags, devtools crawl.
 
-**LightSession** fixes that by intercepting API responses and trimming conversation data *before* React renders it, keeping the actual conversation intact on OpenAI's side.
+**LightSession** fixes that by intercepting API responses and trimming conversation data _before_ React renders it, keeping the actual conversation intact on OpenAI's side.
 
 - **Fixes UI lag** in long chats
 - **Keeps model context intact** (only the DOM is trimmed)
@@ -87,11 +97,13 @@ npm run build:chrome
 ```
 
 **Firefox:**
+
 1. Open `about:debugging#/runtime/this-firefox`
 2. Click **Load Temporary Add-on**
 3. Select `extension/manifest.json`
 
 **Chrome:**
+
 1. Open `chrome://extensions`
 2. Enable **Developer mode**
 3. Click **Load unpacked**
@@ -256,12 +268,13 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 If you find this extension useful, you can support ongoing development:
 
-| Currency | Address |
-|----------|---------|
-| BTC | `bc1qjs07p0qpa2taaje0044yhjry48qps4dseny4kd` |
-| ETH | `0x044ffd952D8525bC69E4d5e32267E9a6bac36510` |
-| SOL | `9nP1soTcZspCi2K1WWE9N7PkKPMA3eFgsdZ61vrCCKGZ` |
+| Currency | Address                                        |
+| -------- | ---------------------------------------------- |
+| BTC      | `bc1qjs07p0qpa2taaje0044yhjry48qps4dseny4kd`   |
+| ETH      | `0x044ffd952D8525bC69E4d5e32267E9a6bac36510`   |
+| SOL      | `9nP1soTcZspCi2K1WWE9N7PkKPMA3eFgsdZ61vrCCKGZ` |
 
 ---
 
 **Disclaimer**: This is an unofficial extension not affiliated with OpenAI.
+

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "LightSession Pro for ChatGPT",
+  "name": "LightSession 中文阅读增强",
   "version": "1.7.4",
-  "description": "Keep ChatGPT fast by keeping only the last N messages in the DOM. Local-only.",
+  "description": "让 ChatGPT 长对话保持流畅，并提供中文目录、阅读位置恢复和整轮复制。数据仅保存在本机。",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -10,29 +10,21 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_title": "LightSession Pro",
+    "default_title": "LightSession 中文阅读增强",
     "default_popup": "popup/popup.html"
   },
   "permissions": ["storage", "tabs", "declarativeContent"],
-  "host_permissions": [
-    "*://chat.openai.com/*",
-    "*://chatgpt.com/*"
-  ],
+  "host_permissions": ["*://chat.openai.com/*", "*://chatgpt.com/*"],
   "content_scripts": [
     {
-      "matches": [
-        "*://chat.openai.com/*",
-        "*://chatgpt.com/*"
-      ],
+      "matches": ["*://chat.openai.com/*", "*://chatgpt.com/*"],
       "js": ["dist/page-inject.js"],
       "run_at": "document_start"
     },
     {
-      "matches": [
-        "*://chat.openai.com/*",
-        "*://chatgpt.com/*"
-      ],
+      "matches": ["*://chat.openai.com/*", "*://chatgpt.com/*"],
       "js": ["dist/content.js"],
+      "css": ["dist/reader-sidebar.css"],
       "run_at": "document_idle"
     }
   ],
@@ -46,3 +38,4 @@
     }
   ]
 }
+

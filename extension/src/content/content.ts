@@ -26,7 +26,7 @@ import { installUserCollapse, type UserCollapseController } from './user-collaps
 import { isLightSessionRejection } from './rejection-filter';
 import { isProxyReadySatisfied } from '../shared/proxy-ready';
 import { extractConversationPageId } from '../shared/url';
-
+import { installReaderSidebar, type ReaderSidebarController } from './reader-sidebar';
 
 // ============================================================================
 // Types for Page Script Communication
@@ -65,6 +65,7 @@ let emptyChatObserver: MutationObserver | null = null;
 let userCollapse: UserCollapseController | null = null;
 let hasAuthoritativeStatus = false;
 let requestedBootstrapSyncConversationId: string | null = null;
+let readerSidebar: ReaderSidebarController | null = null;
 
 // ============================================================================
 // Page Script Communication
@@ -193,6 +194,14 @@ function applySettings(settings: LsSettings): void {
     userCollapse = null;
   }
 
+  if (settings.enabled) {
+    if (!readerSidebar) readerSidebar = installReaderSidebar();
+    readerSidebar.enable();
+  } else if (readerSidebar) {
+    readerSidebar.teardown();
+    readerSidebar = null;
+  }
+
   logDebug('Settings applied:', settings);
 }
 
@@ -268,6 +277,7 @@ function setupNavigationDetection(): void {
       if (currentSettings?.enabled && currentSettings.collapseLongUserMessages) {
         userCollapse?.enable();
       }
+      readerSidebar?.refreshForNavigation();
     });
   };
 
@@ -497,3 +507,4 @@ window.addEventListener('unhandledrejection', (event) => {
     }
   }
 });
+

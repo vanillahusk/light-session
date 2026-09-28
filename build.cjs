@@ -57,6 +57,7 @@ function copyStaticFiles() {
   const filesToCopy = [
     { src: 'extension/src/popup/popup.html', dest: 'extension/popup/popup.html' },
     { src: 'extension/src/popup/popup.css', dest: 'extension/popup/popup.css' },
+    { src: 'extension/src/content/reader-sidebar.css', dest: 'extension/dist/reader-sidebar.css' },
   ];
 
   for (const { src, dest } of filesToCopy) {
@@ -64,7 +65,7 @@ function copyStaticFiles() {
       fs.copyFileSync(src, dest);
     }
   }
-  console.log('✓ Copied static files (popup.html, popup.css)');
+  console.log('✓ Copied static files (popup and reader sidebar styles)');
 }
 
 /**
@@ -106,7 +107,9 @@ const buildOptions = {
 
 async function build() {
   const mode = isProduction ? 'production' : 'development';
-  console.log(`🔧 Building for ${target.toUpperCase()} in ${mode} mode${isProduction ? ' (minified)' : ' (with sourcemaps)'}...\n`);
+  console.log(
+    `🔧 Building for ${target.toUpperCase()} in ${mode} mode${isProduction ? ' (minified)' : ' (with sourcemaps)'}...\n`
+  );
 
   try {
     await esbuild.build({
@@ -148,7 +151,9 @@ async function build() {
     copyManifest();
     handleDevMarker();
 
-    console.log(`\n✅ ${mode.charAt(0).toUpperCase() + mode.slice(1)} build complete! Extension ready for ${target.charAt(0).toUpperCase() + target.slice(1)}.`);
+    console.log(
+      `\n✅ ${mode.charAt(0).toUpperCase() + mode.slice(1)} build complete! Extension ready for ${target.charAt(0).toUpperCase() + target.slice(1)}.`
+    );
   } catch (error) {
     console.error('❌ Build failed:', error);
     process.exit(1);
@@ -204,6 +209,7 @@ async function watch() {
   const staticFiles = [
     'extension/src/popup/popup.html',
     'extension/src/popup/popup.css',
+    'extension/src/content/reader-sidebar.css',
   ];
   for (const file of staticFiles) {
     fs.watchFile(file, { interval: 500 }, () => {
@@ -220,3 +226,4 @@ if (isWatch) {
 } else {
   build();
 }
+

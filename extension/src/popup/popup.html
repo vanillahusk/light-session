@@ -1,150 +1,183 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="light dark">
-  <title>LightSession Pro</title>
-  <link rel="stylesheet" href="popup.css">
-</head>
-<body>
-  <div class="ls-popup">
-    <!-- Header with gradient and master toggle -->
-    <header class="ls-header">
-      <div class="ls-header-content">
-        <div class="ls-logo">
-          <h1>LightSession Pro</h1>
-          <p class="ls-subtitle">ChatGPT Performance Optimizer</p>
-        </div>
-        <!-- Master toggle in header -->
-        <div class="ls-master-toggle">
-          <input type="checkbox" id="enableToggle" class="ls-toggle-input" aria-label="Enable extension">
-          <label for="enableToggle" class="ls-toggle-track">
-            <span class="ls-toggle-thumb"></span>
-          </label>
-        </div>
-      </div>
-      <div class="ls-header-accent"></div>
-    </header>
-
-    <main class="ls-main">
-      <!-- Card: Message Retention -->
-      <section class="ls-card" id="retentionCard">
-        <div class="ls-card-header">
-          <span class="ls-card-title">Message Retention</span>
-        </div>
-        <div class="ls-card-content">
-          <div class="ls-slider-container">
-            <label class="ls-slider-header" for="keepSlider">
-              <span class="ls-slider-label">Keep last</span>
-              <span class="ls-slider-value" id="keepValue">10</span>
-              <span class="ls-slider-label">messages</span>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>LightSession Pro</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="ls-popup">
+      <!-- Header with gradient and master toggle -->
+      <header class="ls-header">
+        <div class="ls-header-content">
+          <div class="ls-logo">
+            <h1>LightSession Pro</h1>
+            <p class="ls-subtitle">ChatGPT 长对话阅读与性能工具</p>
+          </div>
+          <!-- Master toggle in header -->
+          <div class="ls-master-toggle">
+            <input
+              type="checkbox"
+              id="enableToggle"
+              class="ls-toggle-input"
+              aria-label="启用扩展"
+            />
+            <label for="enableToggle" class="ls-toggle-track">
+              <span class="ls-toggle-thumb"></span>
             </label>
-            <div class="ls-slider-track-wrapper">
-              <input
-                type="range"
-                id="keepSlider"
-                class="ls-slider"
-                min="1"
-                max="100"
-                value="10"
-                aria-label="Number of messages to keep"
-                aria-valuemin="1"
-                aria-valuemax="100"
-                aria-valuenow="10"
-              >
-              <div class="ls-slider-track-fill" id="sliderTrackFill"></div>
-            </div>
-            <div class="ls-slider-labels">
-              <span>1</span>
-              <span>50</span>
-              <span>100</span>
-            </div>
           </div>
         </div>
-      </section>
+        <div class="ls-header-accent"></div>
+      </header>
 
-      <!-- Card: Options -->
-      <section class="ls-card" id="optionsCard">
-        <div class="ls-card-header">
-          <span class="ls-card-title">Options</span>
-        </div>
-        <div class="ls-card-content">
-          <!-- Show Status Bar -->
-          <label class="ls-checkbox-row">
-            <div class="ls-checkbox-wrapper">
-              <input type="checkbox" id="showStatusBarCheckbox" class="ls-checkbox-input" aria-label="Show status bar">
-              <div class="ls-checkbox-box">
-                <svg class="ls-checkbox-check" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 6l3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+      <main class="ls-main">
+        <!-- Card: Message Retention -->
+        <section class="ls-card" id="retentionCard">
+          <div class="ls-card-header">
+            <span class="ls-card-title">消息保留</span>
+          </div>
+          <div class="ls-card-content">
+            <div class="ls-slider-container">
+              <label class="ls-slider-header" for="keepSlider">
+                <span class="ls-slider-label">保留最近</span>
+                <span class="ls-slider-value" id="keepValue">10</span>
+                <span class="ls-slider-label">条消息</span>
+              </label>
+              <div class="ls-slider-track-wrapper">
+                <input
+                  type="range"
+                  id="keepSlider"
+                  class="ls-slider"
+                  min="1"
+                  max="100"
+                  value="10"
+                  aria-label="保留的消息数量"
+                  aria-valuemin="1"
+                  aria-valuemax="100"
+                  aria-valuenow="10"
+                />
+                <div class="ls-slider-track-fill" id="sliderTrackFill"></div>
+              </div>
+              <div class="ls-slider-labels">
+                <span>1</span>
+                <span>50</span>
+                <span>100</span>
               </div>
             </div>
-            <div class="ls-checkbox-label-group">
-              <span class="ls-checkbox-label">Show status bar</span>
-              <span class="ls-checkbox-description">Display trimming stats on page</span>
-            </div>
-          </label>
+          </div>
+        </section>
 
-          <!-- Collapse long user messages -->
-          <label class="ls-checkbox-row">
-            <div class="ls-checkbox-wrapper">
-              <input
-                type="checkbox"
-                id="collapseLongUserMessagesCheckbox"
-                class="ls-checkbox-input"
-                aria-label="Collapse long user messages"
-              >
-              <div class="ls-checkbox-box">
-                <svg class="ls-checkbox-check" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 6l3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+        <!-- Card: Options -->
+        <section class="ls-card" id="optionsCard">
+          <div class="ls-card-header">
+            <span class="ls-card-title">选项</span>
+          </div>
+          <div class="ls-card-content">
+            <!-- Show Status Bar -->
+            <label class="ls-checkbox-row">
+              <div class="ls-checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="showStatusBarCheckbox"
+                  class="ls-checkbox-input"
+                  aria-label="显示状态栏"
+                />
+                <div class="ls-checkbox-box">
+                  <svg class="ls-checkbox-check" viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2 6l3 3 5-6"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
               </div>
-            </div>
-            <div class="ls-checkbox-label-group">
-              <span class="ls-checkbox-label">Collapse long user messages</span>
-              <span class="ls-checkbox-description">Reduce lag in long chats</span>
-            </div>
-          </label>
-
-        </div>
-      </section>
-
-      <!-- Card: Debug (dev only) -->
-      <section class="ls-card ls-card-debug" id="debugGroup" style="display: none;">
-        <div class="ls-card-header">
-          <span class="ls-card-title">Developer</span>
-        </div>
-        <div class="ls-card-content">
-          <label class="ls-checkbox-row">
-            <div class="ls-checkbox-wrapper">
-              <input type="checkbox" id="debugCheckbox" class="ls-checkbox-input" aria-label="Enable debug logging">
-              <div class="ls-checkbox-box">
-                <svg class="ls-checkbox-check" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 6l3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+              <div class="ls-checkbox-label-group">
+                <span class="ls-checkbox-label">显示状态栏</span>
+                <span class="ls-checkbox-description">在页面中显示消息裁剪统计</span>
               </div>
-            </div>
-            <div class="ls-checkbox-label-group">
-              <span class="ls-checkbox-label">Debug mode</span>
-              <span class="ls-checkbox-description">Show logs in console</span>
-            </div>
-          </label>
-        </div>
-      </section>
-    </main>
+            </label>
 
-    <!-- Footer -->
-    <footer class="ls-footer">
-      <div id="status" class="ls-status" role="status" aria-live="polite"></div>
-      <button class="ls-button-support" id="supportLink">
-        <span class="ls-support-heart">❤</span>
-        <span>Support Development</span>
-      </button>
-      <span class="ls-version" id="version"></span>
-    </footer>
-  </div>
+            <!-- Collapse long user messages -->
+            <label class="ls-checkbox-row">
+              <div class="ls-checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="collapseLongUserMessagesCheckbox"
+                  class="ls-checkbox-input"
+                  aria-label="折叠过长的用户消息"
+                />
+                <div class="ls-checkbox-box">
+                  <svg class="ls-checkbox-check" viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2 6l3 3 5-6"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div class="ls-checkbox-label-group">
+                <span class="ls-checkbox-label">折叠过长的用户消息</span>
+                <span class="ls-checkbox-description">减少长对话的页面卡顿</span>
+              </div>
+            </label>
+          </div>
+        </section>
 
-  <script src="popup.js"></script>
-</body>
+        <!-- Card: Debug (dev only) -->
+        <section class="ls-card ls-card-debug" id="debugGroup" style="display: none">
+          <div class="ls-card-header">
+            <span class="ls-card-title">开发者选项</span>
+          </div>
+          <div class="ls-card-content">
+            <label class="ls-checkbox-row">
+              <div class="ls-checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="debugCheckbox"
+                  class="ls-checkbox-input"
+                  aria-label="启用调试日志"
+                />
+                <div class="ls-checkbox-box">
+                  <svg class="ls-checkbox-check" viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2 6l3 3 5-6"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div class="ls-checkbox-label-group">
+                <span class="ls-checkbox-label">调试模式</span>
+                <span class="ls-checkbox-description">在控制台中显示日志</span>
+              </div>
+            </label>
+          </div>
+        </section>
+      </main>
+
+      <!-- Footer -->
+      <footer class="ls-footer">
+        <div id="status" class="ls-status" role="status" aria-live="polite"></div>
+        <button class="ls-button-support" id="supportLink">
+          <span class="ls-support-heart">❤</span>
+          <span>支持项目开发</span>
+        </button>
+        <span class="ls-version" id="version"></span>
+      </footer>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
 </html>
+

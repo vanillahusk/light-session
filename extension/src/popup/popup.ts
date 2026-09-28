@@ -138,8 +138,7 @@ async function reloadActiveChatGPTTab(): Promise<void> {
     if (activeTab?.id && activeTab.url) {
       // Only reload if it's a ChatGPT page
       const isChatGPT =
-        activeTab.url.includes('chat.openai.com') ||
-        activeTab.url.includes('chatgpt.com');
+        activeTab.url.includes('chat.openai.com') || activeTab.url.includes('chatgpt.com');
 
       if (isChatGPT) {
         await browser.tabs.reload(activeTab.id);
@@ -206,7 +205,10 @@ async function initialize(): Promise<void> {
     showStatusBarCheckbox.addEventListener('change', handleShowStatusBarToggle);
   }
   if (collapseLongUserMessagesCheckbox) {
-    collapseLongUserMessagesCheckbox.addEventListener('change', handleCollapseLongUserMessagesToggle);
+    collapseLongUserMessagesCheckbox.addEventListener(
+      'change',
+      handleCollapseLongUserMessagesToggle
+    );
   }
   if (debugCheckbox) {
     debugCheckbox.addEventListener('change', handleDebugToggle);
@@ -245,7 +247,7 @@ async function loadSettings(): Promise<void> {
     // Update disabled state
     updateDisabledState(settings.enabled);
   } catch (error) {
-    showStatus('Failed to load settings', true);
+    showStatus('设置加载失败', true);
     console.error('Failed to load settings:', error);
   }
 }
@@ -264,10 +266,10 @@ async function updateSettings(
     });
 
     if (!options.silent) {
-      showStatus('Settings saved');
+      showStatus('设置已保存');
     }
   } catch (error) {
-    showStatus('Failed to save settings', true);
+    showStatus('设置保存失败', true);
     console.error('Failed to update settings:', error);
   }
 }
@@ -388,3 +390,4 @@ if (document.readyState === 'loading') {
 } else {
   void initialize();
 }
+

@@ -1,0 +1,189 @@
+.ls-reader-sidebar {
+  position: fixed;
+  z-index: 2147483000;
+  top: 72px;
+  right: 16px;
+  width: min(280px, calc(100vw - 32px));
+  max-height: calc(100vh - 96px);
+  overflow: hidden;
+  color: #1f2937;
+  background: color-mix(in srgb, #ffffff 94%, transparent);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 14px;
+  box-shadow: 0 12px 38px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(14px);
+  font:
+    13px/1.45 system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.ls-reader-sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.ls-reader-sidebar__header > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ls-reader-sidebar__header strong {
+  font-size: 14px;
+}
+.ls-reader-sidebar__count {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.ls-reader-sidebar__toggle {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  color: inherit;
+  background: rgba(15, 23, 42, 0.06);
+  cursor: pointer;
+}
+
+.ls-reader-sidebar__list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: calc(100vh - 160px);
+  overflow: auto;
+  padding: 8px;
+}
+
+.ls-reader-sidebar.is-collapsed {
+  width: auto;
+}
+.ls-reader-sidebar.is-collapsed .ls-reader-sidebar__header > div,
+.ls-reader-sidebar.is-collapsed .ls-reader-sidebar__list {
+  display: none;
+}
+.ls-reader-sidebar.is-collapsed .ls-reader-sidebar__header {
+  padding: 7px;
+  border: 0;
+}
+
+.ls-reader-toc-item {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 9px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ls-reader-toc-item:hover {
+  background: rgba(16, 185, 129, 0.08);
+}
+.ls-reader-toc-item.is-active {
+  color: #047857;
+  background: rgba(16, 185, 129, 0.14);
+}
+.ls-reader-toc-item span {
+  color: #9ca3af;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ls-reader-toc-item b {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ls-reader-question {
+  scroll-margin-top: 96px;
+  margin-top: 24px !important;
+  padding: 14px 16px !important;
+  border-left: 4px solid #10b981 !important;
+  border-radius: 10px !important;
+  background: rgba(16, 185, 129, 0.08) !important;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.ls-reader-question.is-active {
+  background: rgba(16, 185, 129, 0.14) !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.18);
+}
+
+.ls-reader-unit {
+  position: relative;
+}
+.ls-reader-copy {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  right: max(12px, calc((100% - 760px) / 2));
+  padding: 5px 9px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 8px;
+  color: #4b5563;
+  background: color-mix(in srgb, #ffffff 92%, transparent);
+  cursor: pointer;
+  font:
+    12px/1.3 system-ui,
+    sans-serif;
+}
+
+.ls-reader-copy:hover {
+  color: #047857;
+  border-color: rgba(5, 150, 105, 0.35);
+}
+
+@media (max-width: 980px) {
+  .ls-reader-sidebar {
+    right: 8px;
+    width: 230px;
+  }
+}
+
+@media (max-width: 720px) {
+  .ls-reader-sidebar {
+    top: 64px;
+    right: 8px;
+    width: min(210px, calc(100vw - 16px));
+  }
+  .ls-reader-sidebar:not(.is-collapsed) {
+    max-height: 42vh;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .ls-reader-sidebar {
+    color: #e5e7eb;
+    background: color-mix(in srgb, #111827 94%, transparent);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 14px 42px rgba(0, 0, 0, 0.42);
+  }
+  .ls-reader-sidebar__header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+  .ls-reader-sidebar__toggle {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .ls-reader-copy {
+    color: #d1d5db;
+    background: rgba(17, 24, 39, 0.92);
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+}
+

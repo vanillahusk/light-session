@@ -493,7 +493,7 @@ function setupConfigListener(): void {
       }
     } else if (detail && typeof detail === 'object') {
       // Fallback: handle object directly (backwards compatibility)
-      config = detail as unknown as LsConfig;
+      config = detail;
     }
 
     if (config && typeof config === 'object') {
@@ -563,3 +563,4 @@ function setupBootstrapSyncListener(): void {
 
   log('Fetch Proxy loaded');
 })();
+
