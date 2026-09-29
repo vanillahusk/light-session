@@ -9,7 +9,16 @@ interface ReaderTurn {
   id: string;
   question: HTMLElement;
   answers: HTMLElement[];
+  host: HTMLElement;
   title: string;
+}
+
+type MessageRole = 'user' | 'assistant';
+
+interface MessageCandidate {
+  role: MessageRole;
+  content: HTMLElement;
+  host: HTMLElement;
 }
 
 export interface ReaderSidebarController {
@@ -22,11 +31,15 @@ function normalizeText(element: HTMLElement): string {
   return element.innerText.replace(/\s+/g, ' ').trim();
 }
 
-function createTurnId(question: HTMLElement, index: number): string {
-  const messageId = question.closest<HTMLElement>('[data-message-id]')?.dataset.messageId;
+function createTurnId(question: HTMLElement, host: HTMLElement, index: number): string {
+  const messageId =
+    host.dataset.messageId ??
+    host.dataset.turnId ??
+    question.closest<HTMLElement>('[data-message-id]')?.dataset.messageId;
   if (messageId) return messageId;
 
-  const articleTestId = question.closest<HTMLElement>('article[data-testid]')?.dataset.testid;
+  const articleTestId =
+    host.dataset.testid ?? question.closest<HTMLElement>('[data-testid]')?.dataset.testid;
   if (articleTestId) return articleTestId;
 
   const text = normalizeText(question);
@@ -38,34 +51,90 @@ function createTurnId(question: HTMLElement, index: number): string {
   return `turn-${index}-${(hash >>> 0).toString(36)}`;
 }
 
-export function collectReaderTurns(root: ParentNode = document): ReaderTurn[] {
-  const roleNodes = Array.from(
-    root.querySelectorAll<HTMLElement>(
-      '[data-message-author-role="user"], [data-message-author-role="assistant"]'
+function closestTurnHost(element: HTMLElement): HTMLElement {
+  return (
+    element.closest<HTMLElement>(
+      '[data-message-id], [data-turn-id], [data-testid^="conversation-turn"], article'
+    ) ?? element
+  );
+}
+
+function contentForRole(host: HTMLElement, role: MessageRole): HTMLElement {
+  if (role === 'user') {
+    return (
+      host.querySelector<HTMLElement>('.user-message-bubble-color .whitespace-pre-wrap') ??
+      host.querySelector<HTMLElement>('.user-message-bubble-color') ??
+      host
+    );
+  }
+
+  return (
+    host.querySelector<HTMLElement>('.markdown.prose, .markdown-new-styling, .markdown') ?? host
+  );
+}
+
+function collectMessageCandidates(root: ParentNode): MessageCandidate[] {
+  const scope = root.querySelector<HTMLElement>('main') ?? root;
+  const candidates: MessageCandidate[] = [];
+  const seenHosts = new Set<HTMLElement>();
+
+  const add = (role: MessageRole, element: HTMLElement): void => {
+    const host = closestTurnHost(element);
+    if (seenHosts.has(host)) return;
+    seenHosts.add(host);
+    candidates.push({ role, host, content: contentForRole(host, role) });
+  };
+
+  const explicitNodes = Array.from(
+    scope.querySelectorAll<HTMLElement>(
+      '[data-message-author-role="user"], [data-message-author-role="assistant"], [data-turn="user"], [data-turn="assistant"]'
     )
   );
+  for (const node of explicitNodes) {
+    const role = node.dataset.messageAuthorRole ?? node.dataset.turn;
+    if (role === 'user' || role === 'assistant') add(role, node);
+  }
+
+  for (const bubble of Array.from(
+    scope.querySelectorAll<HTMLElement>('.user-message-bubble-color')
+  )) {
+    add('user', bubble);
+  }
+
+  for (const answer of Array.from(
+    scope.querySelectorAll<HTMLElement>('.markdown.prose, .markdown-new-styling, .markdown')
+  )) {
+    if (answer.closest('.user-message-bubble-color')) continue;
+    if (answer.parentElement?.closest('.markdown, .markdown-new-styling')) continue;
+    add('assistant', answer);
+  }
+
+  candidates.sort((left, right) => {
+    if (left.host === right.host) return 0;
+    const position = left.host.compareDocumentPosition(right.host);
+    return position & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+  });
+  return candidates;
+}
+
+export function collectReaderTurns(root: ParentNode = document): ReaderTurn[] {
   const turns: ReaderTurn[] = [];
-  const seenContainers = new Set<HTMLElement>();
   let current: ReaderTurn | null = null;
 
-  for (const roleNode of roleNodes) {
-    const container =
-      roleNode.closest<HTMLElement>('article[data-testid^="conversation-turn-"]') ?? roleNode;
-    if (seenContainers.has(container)) continue;
-    seenContainers.add(container);
-
-    const role = roleNode.dataset.messageAuthorRole;
+  for (const candidate of collectMessageCandidates(root)) {
+    const { role, content, host } = candidate;
     if (role === 'user') {
-      const title = normalizeText(roleNode) || `第 ${turns.length + 1} 轮`;
+      const title = normalizeText(content) || `第 ${turns.length + 1} 轮`;
       current = {
-        id: createTurnId(roleNode, turns.length),
-        question: roleNode,
+        id: createTurnId(content, host, turns.length),
+        question: content,
         answers: [],
+        host,
         title,
       };
       turns.push(current);
     } else if (role === 'assistant' && current) {
-      current.answers.push(roleNode);
+      current.answers.push(content);
     }
   }
 
@@ -131,6 +200,7 @@ export function installReaderSidebar(): ReaderSidebarController {
   let scrollFrame: number | null = null;
   let sidebar: HTMLElement | null = null;
   let list: HTMLElement | null = null;
+  let hasRenderedList = false;
 
   function ensureSidebar(): void {
     if (sidebar?.isConnected) return;
@@ -166,9 +236,7 @@ export function installReaderSidebar(): ReaderSidebarController {
       turn.question.classList.add('ls-reader-question');
       turn.question.dataset.lsReaderTurnId = turn.id;
 
-      const host =
-        turn.question.closest<HTMLElement>('article[data-testid^="conversation-turn-"]') ??
-        turn.question;
+      const { host } = turn;
       if (host.querySelector(`[data-ls-copy-turn="${CSS.escape(turn.id)}"]`)) continue;
 
       host.classList.add('ls-reader-unit');
@@ -204,6 +272,7 @@ export function installReaderSidebar(): ReaderSidebarController {
     const count = sidebar.querySelector<HTMLElement>('.ls-reader-sidebar__count');
     if (count) count.textContent = `${turns.length} 轮`;
     sidebar.hidden = turns.length === 0;
+    hasRenderedList = true;
     updateActiveItem(activeId);
   }
 
@@ -277,7 +346,7 @@ export function installReaderSidebar(): ReaderSidebarController {
     const previousSignature = turns.map((turn) => turn.id).join('|');
     turns = nextTurns;
     decorateTurns();
-    if (signature !== previousSignature || !sidebar?.isConnected) renderList();
+    if (signature !== previousSignature || !sidebar?.isConnected || !hasRenderedList) renderList();
     void restorePosition().finally(handleScroll);
   }
 
@@ -312,11 +381,10 @@ export function installReaderSidebar(): ReaderSidebarController {
     sidebar?.remove();
     sidebar = null;
     list = null;
+    hasRenderedList = false;
     for (const turn of turns) {
       turn.question.classList.remove('ls-reader-question', 'is-active');
-      const host =
-        turn.question.closest<HTMLElement>('article[data-testid^="conversation-turn-"]') ??
-        turn.question;
+      const { host } = turn;
       host.classList.remove('ls-reader-unit');
       host.querySelector<HTMLElement>('[data-ls-copy-turn]')?.remove();
     }

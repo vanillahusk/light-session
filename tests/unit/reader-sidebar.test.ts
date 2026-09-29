@@ -52,5 +52,37 @@ describe('reader sidebar turn collection', () => {
     expect(turns).toHaveLength(1);
     expect(turns[0]?.answers).toHaveLength(1);
   });
+
+  it('supports data-turn containers when role roots are absent', async () => {
+    document.body.innerHTML = `
+      <main>
+        <section data-turn="user" data-turn-id="u1"><div class="user-message-bubble-color"><div class="whitespace-pre-wrap">新版问题</div></div></section>
+        <section data-turn="assistant" data-turn-id="a1"><div class="markdown prose">新版回答</div></section>
+      </main>
+    `;
+
+    const { collectReaderTurns } = await import('../../extension/src/content/reader-sidebar');
+    const turns = collectReaderTurns(document);
+
+    expect(turns).toHaveLength(1);
+    expect(turns[0]?.title).toBe('新版问题');
+    expect(turns[0]?.answers[0]?.innerText).toBe('新版回答');
+  });
+
+  it('falls back to user bubbles and markdown blocks', async () => {
+    document.body.innerHTML = `
+      <main>
+        <div class="user-message-bubble-color"><div class="whitespace-pre-wrap">回退问题</div></div>
+        <div class="markdown">回退回答</div>
+      </main>
+    `;
+
+    const { collectReaderTurns } = await import('../../extension/src/content/reader-sidebar');
+    const turns = collectReaderTurns(document);
+
+    expect(turns).toHaveLength(1);
+    expect(turns[0]?.title).toBe('回退问题');
+    expect(turns[0]?.answers).toHaveLength(1);
+  });
 });
 
