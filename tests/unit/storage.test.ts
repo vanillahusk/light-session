@@ -42,6 +42,7 @@ describe('validateSettings', () => {
 
     expect(result.version).toBe(1);
     expect(result.enabled).toBe(DEFAULT_SETTINGS.enabled);
+    expect(result.trimEnabled).toBe(false);
     expect(result.keep).toBe(DEFAULT_SETTINGS.keep);
     expect(result.showStatusBar).toBe(DEFAULT_SETTINGS.showStatusBar);
     expect(result.collapseLongUserMessages).toBe(DEFAULT_SETTINGS.collapseLongUserMessages);
@@ -52,6 +53,7 @@ describe('validateSettings', () => {
   it('preserves valid settings values', () => {
     const input = {
       enabled: false,
+      trimEnabled: true,
       keep: 20,
       showStatusBar: false,
       collapseLongUserMessages: false,
@@ -62,6 +64,7 @@ describe('validateSettings', () => {
     const result = validateSettings(input);
 
     expect(result.enabled).toBe(false);
+    expect(result.trimEnabled).toBe(true);
     expect(result.keep).toBe(20);
     expect(result.showStatusBar).toBe(false);
     expect(result.collapseLongUserMessages).toBe(false);
@@ -264,3 +267,4 @@ describe('initializeSettings', () => {
     await expect(initializeSettings()).resolves.toBeUndefined();
   });
 });
+

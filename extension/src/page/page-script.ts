@@ -14,10 +14,7 @@
 // Make this file a module for global augmentation to work
 export {};
 
-import {
-  trimMapping,
-  type ConversationData,
-} from '../shared/trimmer';
+import { trimMapping, type ConversationData } from '../shared/trimmer';
 import { TIMING } from '../shared/constants';
 import { markProxyReady } from '../shared/proxy-ready';
 import type { TrimStatus } from '../shared/types';
@@ -46,7 +43,7 @@ declare global {
 }
 
 const DEFAULT_CONFIG: LsConfig = {
-  enabled: true,
+  enabled: false,
   limit: 10,
   debug: false,
 };
@@ -85,10 +82,7 @@ async function ensureConfigReady(timeoutMs = 50): Promise<void> {
     // Already resolved
     return;
   }
-  await Promise.race([
-    configReady,
-    new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)),
-  ]);
+  await Promise.race([configReady, new Promise<void>((resolve) => setTimeout(resolve, timeoutMs))]);
   // After timeout (or config arrived), mark as ready so subsequent fetches don't wait
   tryResolveConfigReady();
 }
@@ -146,9 +140,7 @@ function log(...args: unknown[]): void {
  * Content script listens for this to update the status bar.
  */
 function dispatchStatus(status: TrimStatus): void {
-  window.dispatchEvent(
-    new CustomEvent('lightsession-status', { detail: status })
-  );
+  window.dispatchEvent(new CustomEvent('lightsession-status', { detail: status }));
 }
 
 function extractConversationRequestId(url: URL): string | null {
@@ -158,13 +150,13 @@ function extractConversationRequestId(url: URL): string | null {
   return match?.[1] ?? null;
 }
 
-function looksLikeConversationData(
-  json: ConversationData | null
-): json is ConversationData & {
+function looksLikeConversationData(json: ConversationData | null): json is ConversationData & {
   mapping: NonNullable<ConversationData['mapping']>;
   current_node: string;
 } {
-  return !!json && typeof json === 'object' && !!json.mapping && typeof json.current_node === 'string';
+  return (
+    !!json && typeof json === 'object' && !!json.mapping && typeof json.current_node === 'string'
+  );
 }
 
 async function attemptAuthoritativeConversationSync(conversationId: string): Promise<void> {
@@ -194,7 +186,10 @@ async function attemptAuthoritativeConversationSync(conversationId: string): Pro
           continue;
         }
 
-        const json = (await response.clone().json().catch(() => null)) as ConversationData | null;
+        const json = (await response
+          .clone()
+          .json()
+          .catch(() => null)) as ConversationData | null;
         if (looksLikeConversationData(json)) {
           completedBootstrapSyncIds.add(conversationId);
           return;
@@ -224,7 +219,7 @@ function getConfig(): LsConfig {
     window.__LS_CONFIG__ = stored;
     return stored;
   }
-  
+
   // Fall back to window config (set by content script events)
   const cfg = window.__LS_CONFIG__;
   if (cfg) {
@@ -235,7 +230,7 @@ function getConfig(): LsConfig {
       debug: cfg.debug ?? DEFAULT_CONFIG.debug,
     };
   }
-  
+
   return DEFAULT_CONFIG;
 }
 
@@ -274,10 +269,7 @@ function isJsonResponse(res: Response): boolean {
 /**
  * Create a new Response with modified JSON body
  */
-function createModifiedResponse(
-  originalRes: Response,
-  modifiedData: ConversationData
-): Response {
+function createModifiedResponse(originalRes: Response, modifiedData: ConversationData): Response {
   const text = JSON.stringify(modifiedData);
 
   // Clone headers but remove content-length (will be recalculated)
@@ -399,9 +391,7 @@ async function interceptedFetch(
     // Rewriting the tree when nothing is trimmed would destroy hidden/system/tool/thinking
     // nodes and alter the tree shape unnecessarily (issue #26).
     if (trimmed.visibleKept === trimmed.visibleTotal) {
-      log(
-        `No visible trim needed: ${keptAfter}/${totalBefore} nodes (limit: ${cfg.limit})`
-      );
+      log(`No visible trim needed: ${keptAfter}/${totalBefore} nodes (limit: ${cfg.limit})`);
       dispatchStatus({
         totalBefore,
         keptAfter,

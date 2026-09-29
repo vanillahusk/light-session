@@ -33,6 +33,7 @@ let enableToggle: HTMLInputElement;
 let keepSlider: HTMLInputElement;
 let keepValue: HTMLElement;
 let sliderTrackFill: HTMLElement;
+let trimEnabledCheckbox: HTMLInputElement | null;
 let showStatusBarCheckbox: HTMLInputElement | null;
 let collapseLongUserMessagesCheckbox: HTMLInputElement | null;
 let debugCheckbox: HTMLInputElement | null;
@@ -163,6 +164,7 @@ async function initialize(): Promise<void> {
 
   // Get optional UI elements (may not exist in all configurations)
   showStatusBarCheckbox = getOptionalElement<HTMLInputElement>('showStatusBarCheckbox');
+  trimEnabledCheckbox = getOptionalElement<HTMLInputElement>('trimEnabledCheckbox');
   collapseLongUserMessagesCheckbox = getOptionalElement<HTMLInputElement>(
     'collapseLongUserMessagesCheckbox'
   );
@@ -204,6 +206,9 @@ async function initialize(): Promise<void> {
   if (showStatusBarCheckbox) {
     showStatusBarCheckbox.addEventListener('change', handleShowStatusBarToggle);
   }
+  if (trimEnabledCheckbox) {
+    trimEnabledCheckbox.addEventListener('change', () => void handleTrimEnabledToggle());
+  }
   if (collapseLongUserMessagesCheckbox) {
     collapseLongUserMessagesCheckbox.addEventListener(
       'change',
@@ -237,6 +242,9 @@ async function loadSettings(): Promise<void> {
     if (showStatusBarCheckbox) {
       showStatusBarCheckbox.checked = settings.showStatusBar;
     }
+    if (trimEnabledCheckbox) {
+      trimEnabledCheckbox.checked = settings.trimEnabled;
+    }
     if (collapseLongUserMessagesCheckbox) {
       collapseLongUserMessagesCheckbox.checked = settings.collapseLongUserMessages;
     }
@@ -245,7 +253,7 @@ async function loadSettings(): Promise<void> {
     }
 
     // Update disabled state
-    updateDisabledState(settings.enabled);
+    updateDisabledState(settings.enabled, settings.trimEnabled);
   } catch (error) {
     showStatus('设置加载失败', true);
     console.error('Failed to load settings:', error);
@@ -282,6 +290,13 @@ async function handleEnableToggle(): Promise<void> {
   await updateSettings({ enabled });
   updateDisabledState(enabled);
   // Reload page to apply the change
+  await reloadActiveChatGPTTab();
+}
+
+async function handleTrimEnabledToggle(): Promise<void> {
+  const trimEnabled = trimEnabledCheckbox?.checked ?? false;
+  await updateSettings({ trimEnabled });
+  updateDisabledState(enableToggle.checked, trimEnabled);
   await reloadActiveChatGPTTab();
 }
 
@@ -371,10 +386,12 @@ function showStatus(message: string, isError: boolean = false): void {
 /**
  * Update disabled state of settings based on enabled toggle
  */
-function updateDisabledState(enabled: boolean): void {
+function updateDisabledState(
+  enabled: boolean,
+  trimEnabled = trimEnabledCheckbox?.checked ?? false
+): void {
   // Toggle disabled class on cards
-  const cards = [retentionCard, optionsCard];
-  for (const card of cards) {
+  for (const card of [optionsCard]) {
     if (!card) continue;
     if (enabled) {
       card.classList.remove('disabled');
@@ -382,6 +399,8 @@ function updateDisabledState(enabled: boolean): void {
       card.classList.add('disabled');
     }
   }
+  retentionCard?.classList.toggle('disabled', !enabled);
+  keepSlider.disabled = !enabled || !trimEnabled;
 }
 
 // Initialize when DOM is ready

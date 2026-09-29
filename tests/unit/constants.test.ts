@@ -57,6 +57,10 @@ describe('DEFAULT_SETTINGS', () => {
     expect(typeof DEFAULT_SETTINGS.enabled).toBe('boolean');
   });
 
+  it('legacy trimming is disabled by default', () => {
+    expect(DEFAULT_SETTINGS.trimEnabled).toBe(false);
+  });
+
   it('keep is within validation range', () => {
     expect(DEFAULT_SETTINGS.keep).toBeGreaterThanOrEqual(VALIDATION.MIN_KEEP);
     expect(DEFAULT_SETTINGS.keep).toBeLessThanOrEqual(VALIDATION.MAX_KEEP);
@@ -74,3 +78,4 @@ describe('DEFAULT_SETTINGS', () => {
     expect(typeof DEFAULT_SETTINGS.debug).toBe('boolean');
   });
 });
+

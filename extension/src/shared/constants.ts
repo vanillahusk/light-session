@@ -12,8 +12,9 @@ import type { LsSettings } from './types';
 export const DEFAULT_SETTINGS: Readonly<LsSettings> = {
   version: 1,
   enabled: true,
+  trimEnabled: false,
   keep: 10,
-  showStatusBar: true,
+  showStatusBar: false,
   collapseLongUserMessages: true,
   debug: false,
   ultraLean: false,
@@ -153,4 +154,6 @@ export const VALIDATION = {
 // External URLs
 // ============================================================================
 
-export const SUPPORT_URL = 'https://github.com/11me/light-session?tab=readme-ov-file#%EF%B8%8F-support' as const;
+export const SUPPORT_URL =
+  'https://github.com/11me/light-session?tab=readme-ov-file#%EF%B8%8F-support' as const;
+

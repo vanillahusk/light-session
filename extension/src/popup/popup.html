@@ -37,8 +37,34 @@
         <section class="ls-card" id="retentionCard">
           <div class="ls-card-header">
             <span class="ls-card-title">消息保留</span>
+            <span class="ls-badge ls-badge-warning">实验性</span>
           </div>
           <div class="ls-card-content">
+            <label class="ls-checkbox-row" style="margin-bottom: 12px">
+              <div class="ls-checkbox-wrapper">
+                <input
+                  type="checkbox"
+                  id="trimEnabledCheckbox"
+                  class="ls-checkbox-input"
+                  aria-label="启用旧版消息裁剪"
+                />
+                <div class="ls-checkbox-box">
+                  <svg class="ls-checkbox-check" viewBox="0 0 12 12" fill="none">
+                    <path
+                      d="M2 6l3 3 5-6"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div class="ls-checkbox-label-group">
+                <span class="ls-checkbox-label">启用旧版消息裁剪</span>
+                <span class="ls-checkbox-description">默认关闭；当前 ChatGPT 页面可能不兼容</span>
+              </div>
+            </label>
             <div class="ls-slider-container">
               <label class="ls-slider-header" for="keepSlider">
                 <span class="ls-slider-label">保留最近</span>

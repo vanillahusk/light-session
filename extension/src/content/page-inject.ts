@@ -22,18 +22,21 @@ const LOCAL_STORAGE_KEY = 'ls_config';
 async function syncSettingsToLocalStorage(): Promise<void> {
   try {
     const result = await browser.storage.local.get(STORAGE_KEY);
-    const stored = result[STORAGE_KEY] as { enabled?: boolean; keep?: number; debug?: boolean } | undefined;
+    const stored = result[STORAGE_KEY] as
+      { enabled?: boolean; trimEnabled?: boolean; keep?: number; debug?: boolean } | undefined;
 
     if (stored) {
       const config = {
-        enabled: stored.enabled ?? true,
+        enabled: (stored.enabled ?? true) && (stored.trimEnabled ?? false),
         limit: stored.keep ?? 10,
         debug: stored.debug ?? false,
       };
       // Write to localStorage for page-script access
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(config));
       // Dispatch event immediately - faster than waiting for content.ts (document_idle)
-      window.dispatchEvent(new CustomEvent('lightsession-config', { detail: JSON.stringify(config) }));
+      window.dispatchEvent(
+        new CustomEvent('lightsession-config', { detail: JSON.stringify(config) })
+      );
     }
   } catch {
     // Storage access failed - page-script will use defaults after timeout
@@ -61,9 +64,22 @@ function injectPageScript(): void {
 }
 
 // Main execution:
+// Clear any stale pre-reader config synchronously. Older builds mirrored
+// `enabled: true` here, which could make the fetch proxy mutate the first
+// conversation response before storage migration completed.
+try {
+  localStorage.setItem(
+    LOCAL_STORAGE_KEY,
+    JSON.stringify({ enabled: false, limit: 10, debug: false })
+  );
+} catch {
+  // localStorage may be unavailable; page-script also defaults to disabled.
+}
+
 // 1. Inject page script IMMEDIATELY to patch fetch before ChatGPT's code runs
 // 2. Sync localStorage in parallel (best effort for first fetch)
 // 3. content.ts will dispatch config via CustomEvent as fallback
 // Priority is early patching - page-script uses defaults if localStorage not ready.
 injectPageScript();
 void syncSettingsToLocalStorage();
+

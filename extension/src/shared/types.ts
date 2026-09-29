@@ -10,6 +10,7 @@
 export interface LsSettings {
   version: 1; // Schema version for future migrations
   enabled: boolean; // Toggle trimming on/off
+  trimEnabled: boolean; // Legacy fetch-response trimming (off by default for compatibility)
   keep: number; // Message retention limit (1-100)
   showStatusBar: boolean; // Show in-page status bar with trimming stats
   collapseLongUserMessages: boolean; // Collapse long user messages in UI (presentation-only)
@@ -95,4 +96,6 @@ export type RuntimeMessage = GetSettingsMessage | SetSettingsMessage | PingMessa
 /**
  * Union of all runtime responses
  */
-export type RuntimeResponse = GetSettingsResponse | SetSettingsResponse | PongMessage | ErrorResponse;
+export type RuntimeResponse =
+  GetSettingsResponse | SetSettingsResponse | PongMessage | ErrorResponse;
+

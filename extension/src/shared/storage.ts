@@ -25,6 +25,7 @@ export function validateSettings(input: Partial<LsSettings>): LsSettings {
   return {
     version: 1, // Always current version
     enabled: input.enabled ?? DEFAULT_SETTINGS.enabled,
+    trimEnabled: input.trimEnabled ?? DEFAULT_SETTINGS.trimEnabled,
     keep: Math.max(
       VALIDATION.MIN_KEEP,
       Math.min(VALIDATION.MAX_KEEP, input.keep ?? DEFAULT_SETTINGS.keep)
@@ -51,7 +52,7 @@ export function syncToLocalStorage(settings: LsSettings): void {
 
   try {
     const config = {
-      enabled: settings.enabled,
+      enabled: settings.enabled && settings.trimEnabled,
       limit: settings.keep,
       debug: settings.debug,
     };
@@ -62,7 +63,6 @@ export function syncToLocalStorage(settings: LsSettings): void {
     logError('Failed to sync to localStorage:', error);
   }
 }
-
 
 /**
  * Load settings from browser.storage.local
@@ -125,3 +125,4 @@ export async function initializeSettings(): Promise<void> {
     logError('Failed to initialize settings:', error);
   }
 }
+

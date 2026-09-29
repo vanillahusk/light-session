@@ -88,7 +88,7 @@ let readerSidebar: ReaderSidebarController | null = null;
  */
 function dispatchConfig(settings: LsSettings): void {
   const config: PageScriptConfig = {
-    enabled: settings.enabled,
+    enabled: settings.enabled && settings.trimEnabled,
     limit: settings.keep,
     debug: settings.debug,
   };
@@ -172,7 +172,7 @@ function applySettings(settings: LsSettings): void {
   dispatchConfig(settings);
 
   // Handle status bar visibility
-  setStatusBarVisibility(settings.showStatusBar && settings.enabled);
+  setStatusBarVisibility(settings.showStatusBar && settings.enabled && settings.trimEnabled);
 
   // Reset accumulated count on enable toggle
   if (prevSettings && prevSettings.enabled !== settings.enabled) {
@@ -333,7 +333,7 @@ function checkEmptyChatView(): void {
 
   emptyChatState = false;
 
-  if (!currentSettings?.enabled || hasAuthoritativeStatus) {
+  if (!currentSettings?.enabled || !currentSettings.trimEnabled || hasAuthoritativeStatus) {
     return;
   }
 
