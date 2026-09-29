@@ -57,6 +57,8 @@ function copyStaticFiles() {
   const filesToCopy = [
     { src: 'extension/src/popup/popup.html', dest: 'extension/popup/popup.html' },
     { src: 'extension/src/popup/popup.css', dest: 'extension/popup/popup.css' },
+    { src: 'extension/src/reader/reader.html', dest: 'extension/reader/reader.html' },
+    { src: 'extension/src/reader/reader.css', dest: 'extension/reader/reader.css' },
     { src: 'extension/src/content/reader-sidebar.css', dest: 'extension/dist/reader-sidebar.css' },
   ];
 
@@ -65,7 +67,7 @@ function copyStaticFiles() {
       fs.copyFileSync(src, dest);
     }
   }
-  console.log('✓ Copied static files (popup and reader sidebar styles)');
+  console.log('✓ Copied static files (popup, reader, and sidebar styles)');
 }
 
 /**
@@ -147,6 +149,13 @@ async function build() {
     });
     console.log('✓ Built popup script');
 
+    await esbuild.build({
+      ...buildOptions,
+      entryPoints: ['extension/src/reader/reader.ts'],
+      outfile: 'extension/reader/reader.js',
+    });
+    console.log('✓ Built reader script');
+
     copyStaticFiles();
     copyManifest();
     handleDevMarker();
@@ -189,6 +198,11 @@ async function watch() {
       entryPoints: ['extension/src/popup/popup.ts'],
       outfile: 'extension/popup/popup.js',
     }),
+    esbuild.context({
+      ...buildOptions,
+      entryPoints: ['extension/src/reader/reader.ts'],
+      outfile: 'extension/reader/reader.js',
+    }),
   ]);
 
   // Initial build
@@ -209,6 +223,8 @@ async function watch() {
   const staticFiles = [
     'extension/src/popup/popup.html',
     'extension/src/popup/popup.css',
+    'extension/src/reader/reader.html',
+    'extension/src/reader/reader.css',
     'extension/src/content/reader-sidebar.css',
   ];
   for (const file of staticFiles) {

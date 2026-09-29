@@ -29,6 +29,23 @@ interface LsConfig {
   debug: boolean;
 }
 
+interface ReaderMessageRecord {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  time: number | null;
+  voice?: boolean;
+}
+
+interface ReaderConversationPage {
+  messages?: unknown[];
+  title?: unknown;
+  page_info?: {
+    start_cursor?: unknown;
+    has_previous_page?: unknown;
+  };
+}
+
 // ============================================================================
 // Global State
 // ============================================================================
@@ -92,6 +109,9 @@ const CONFIG_FALLBACK_TIMEOUT_MS = 2000;
 const configStartTime = Date.now();
 const completedBootstrapSyncIds = new Set<string>();
 const inFlightBootstrapSyncIds = new Set<string>();
+const inFlightReaderRequests = new Set<string>();
+let nativePageFetch: typeof fetch | null = null;
+let capturedApiHeaders: Headers | null = null;
 
 /**
  * localStorage key - must match storage.ts LOCAL_STORAGE_KEY
@@ -266,6 +286,153 @@ function isJsonResponse(res: Response): boolean {
   return contentType.toLowerCase().includes('application/json');
 }
 
+function captureApiHeaders(input: RequestInfo | URL, init?: RequestInit): void {
+  const requestHeaders = new Headers(input instanceof Request ? input.headers : undefined);
+  if (init?.headers) {
+    new Headers(init.headers).forEach((value, key) => requestHeaders.set(key, value));
+  }
+  let hasHeaders = false;
+  requestHeaders.forEach(() => {
+    hasHeaders = true;
+  });
+  if (hasHeaders) capturedApiHeaders = requestHeaders;
+}
+
+function readerMessageText(value: unknown): string {
+  if (!value || typeof value !== 'object') return '';
+  const message = value as {
+    content?: { content_type?: string; parts?: unknown[] };
+    metadata?: { content_references?: unknown };
+  };
+  const content = message.content;
+  if (!content || !['text', 'multimodal_text'].includes(content.content_type ?? 'text')) return '';
+  const text = (content.parts ?? [])
+    .map((part) => {
+      if (typeof part === 'string') return part;
+      if (!part || typeof part !== 'object') return '';
+      const item = part as { text?: unknown; content_type?: unknown };
+      if (typeof item.text === 'string') return item.text;
+      return typeof item.content_type === 'string' && item.content_type.includes('image')
+        ? '[图片]'
+        : '';
+    })
+    .filter(Boolean)
+    .join('\n')
+    .trim();
+  const links = new Map<string, string>();
+  if (Array.isArray(message.metadata?.content_references)) {
+    for (const value of message.metadata.content_references) {
+      if (!value || typeof value !== 'object') continue;
+      const reference = value as { matched_text?: unknown; alt?: unknown };
+      if (typeof reference.matched_text === 'string' && typeof reference.alt === 'string') {
+        links.set(reference.matched_text, reference.alt.trim());
+      }
+    }
+  }
+  return text.replace(/[ \t]*(\ue200[^\ue201]*\ue201)/g, (_match, marker: string) => {
+    const replacement = links.get(marker);
+    return replacement ? ` ${replacement}` : '';
+  });
+}
+
+function readerRecords(messages: unknown[] | undefined): ReaderMessageRecord[] {
+  const records: ReaderMessageRecord[] = [];
+  for (const value of messages ?? []) {
+    if (!value || typeof value !== 'object') continue;
+    const message = value as {
+      id?: unknown;
+      author?: { role?: unknown };
+      recipient?: unknown;
+      metadata?: { is_visually_hidden_from_conversation?: unknown };
+      create_time?: unknown;
+    };
+    const role = message.author?.role;
+    if (
+      typeof message.id !== 'string' ||
+      (role !== 'user' && role !== 'assistant') ||
+      (message.recipient && message.recipient !== 'all') ||
+      message.metadata?.is_visually_hidden_from_conversation === true
+    ) {
+      continue;
+    }
+    const text = readerMessageText(value);
+    if (text) {
+      const record: ReaderMessageRecord = {
+        id: message.id,
+        role,
+        text,
+        time: typeof message.create_time === 'number' ? message.create_time : null,
+      };
+      const metadata = (value as { metadata?: { voice_mode_message?: unknown } }).metadata;
+      if (metadata?.voice_mode_message === true) record.voice = true;
+      records.push(record);
+    }
+  }
+  return records;
+}
+
+function dispatchReaderResult(detail: object): void {
+  window.dispatchEvent(
+    new CustomEvent('lightsession-reader-result', { detail: JSON.stringify(detail) })
+  );
+}
+
+async function loadReaderConversation(requestId: string, conversationId: string): Promise<void> {
+  if (!nativePageFetch || inFlightReaderRequests.has(requestId)) return;
+  inFlightReaderRequests.add(requestId);
+
+  try {
+    let before: string | null = null;
+    let records: ReaderMessageRecord[] = [];
+    let title: string | null = null;
+    const seenCursors = new Set<string>();
+
+    for (let pageNumber = 0; pageNumber < 100; pageNumber += 1) {
+      const path = before
+        ? `/backend-api/conversations/${encodeURIComponent(conversationId)}/messages`
+        : `/backend-api/conversations/${encodeURIComponent(conversationId)}`;
+      const url = new URL(path, location.origin);
+      if (before) url.searchParams.set('before', before);
+      url.searchParams.set('include_has_versions', 'true');
+      url.searchParams.set('num_turns', '100');
+
+      let response = await nativePageFetch(url, {
+        credentials: 'include',
+        headers: capturedApiHeaders ?? undefined,
+      });
+      if (response.status === 422 && url.searchParams.get('num_turns') === '100') {
+        url.searchParams.set('num_turns', '10');
+        response = await nativePageFetch(url, {
+          credentials: 'include',
+          headers: capturedApiHeaders ?? undefined,
+        });
+      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const page = (await response.json()) as ReaderConversationPage;
+      if (!Array.isArray(page.messages)) throw new Error('消息接口返回格式不受支持');
+      if (!title && typeof page.title === 'string' && page.title.trim()) title = page.title.trim();
+      records = [...readerRecords(page.messages), ...records];
+
+      const cursor = page.page_info?.start_cursor;
+      const hasPrevious = page.page_info?.has_previous_page === true;
+      if (!hasPrevious || typeof cursor !== 'string' || seenCursors.has(cursor)) break;
+      seenCursors.add(cursor);
+      before = cursor;
+    }
+
+    dispatchReaderResult({ requestId, conversationId, title, records });
+  } catch (error) {
+    dispatchReaderResult({
+      requestId,
+      conversationId,
+      error: error instanceof Error ? error.message : '读取会话失败',
+    });
+  } finally {
+    inFlightReaderRequests.delete(requestId);
+  }
+}
+
 /**
  * Create a new Response with modified JSON body
  */
@@ -324,6 +491,10 @@ async function interceptedFetch(
   }
 
   const url = new URL(urlString, location.href);
+
+  if (url.origin === location.origin && url.pathname.startsWith('/backend-api/')) {
+    captureApiHeaders(input, init);
+  }
 
   // Early return for non-matching requests - no config wait needed
   if (!isConversationRequest(method, url)) {
@@ -446,6 +617,7 @@ function patchFetch(): void {
   }
 
   const nativeFetch = window.fetch.bind(window);
+  nativePageFetch = nativeFetch;
 
   window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
     return interceptedFetch(nativeFetch, ...args);
@@ -453,14 +625,37 @@ function patchFetch(): void {
 
   window.__LS_PROXY_PATCHED__ = true;
   log('Fetch proxy installed');
-  markProxyReady();
-
-  // Notify content script that proxy is ready (use origin for security)
-  window.postMessage({ type: 'lightsession-proxy-ready' }, location.origin);
+  signalProxyReady();
 
   // Request config from content script (handles race condition where
   // content script may have loaded before page script sent ready signal)
   window.dispatchEvent(new CustomEvent('lightsession-request-config'));
+}
+
+function signalProxyReady(): void {
+  markProxyReady();
+  window.postMessage({ type: 'lightsession-proxy-ready' }, location.origin);
+}
+
+function setupProxyReadyProbeListener(): void {
+  window.addEventListener('lightsession-proxy-ready-request', signalProxyReady);
+}
+
+function setupReaderRequestListener(): void {
+  window.addEventListener('lightsession-reader-request', ((event: CustomEvent<string>) => {
+    if (typeof event.detail !== 'string') return;
+    try {
+      const request = JSON.parse(event.detail) as {
+        requestId?: unknown;
+        conversationId?: unknown;
+      };
+      if (typeof request.requestId !== 'string' || typeof request.conversationId !== 'string')
+        return;
+      void loadReaderConversation(request.requestId, request.conversationId);
+    } catch {
+      // Ignore malformed requests from the isolated content-script world.
+    }
+  }) as EventListener);
 }
 
 /**
@@ -549,6 +744,8 @@ function setupBootstrapSyncListener(): void {
 
   setupConfigListener();
   setupBootstrapSyncListener();
+  setupReaderRequestListener();
+  setupProxyReadyProbeListener();
   patchFetch();
 
   log('Fetch Proxy loaded');

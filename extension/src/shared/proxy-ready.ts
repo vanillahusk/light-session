@@ -19,3 +19,4 @@ export function isProxyReadySatisfied(
 ): boolean {
   return postMessageObserved || hasProxyReadyMarker(root);
 }
+

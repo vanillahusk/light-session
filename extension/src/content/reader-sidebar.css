@@ -35,6 +35,25 @@
   gap: 8px;
 }
 
+.ls-reader-sidebar__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ls-reader-sidebar__desktop {
+  height: 28px;
+  padding: 0 9px;
+  border: 1px solid rgba(16, 185, 129, 0.24);
+  border-radius: 8px;
+  color: #047857;
+  background: rgba(16, 185, 129, 0.09);
+  cursor: pointer;
+  font: 12px/1 system-ui, sans-serif;
+}
+.ls-reader-sidebar__desktop:hover { background: rgba(16, 185, 129, 0.16); }
+.ls-reader-sidebar__desktop:disabled { cursor: wait; opacity: 0.75; }
+
 .ls-reader-sidebar__header strong {
   font-size: 14px;
 }
@@ -62,6 +81,13 @@
   padding: 8px;
 }
 
+.ls-reader-sidebar__empty {
+  padding: 14px 10px;
+  color: #6b7280;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
 .ls-reader-sidebar.is-collapsed {
   width: auto;
 }
@@ -69,6 +95,7 @@
 .ls-reader-sidebar.is-collapsed .ls-reader-sidebar__list {
   display: none;
 }
+.ls-reader-sidebar.is-collapsed .ls-reader-sidebar__desktop { display: none; }
 .ls-reader-sidebar.is-collapsed .ls-reader-sidebar__header {
   padding: 7px;
   border: 0;
@@ -179,6 +206,11 @@
   }
   .ls-reader-sidebar__toggle {
     background: rgba(255, 255, 255, 0.08);
+  }
+  .ls-reader-sidebar__desktop {
+    color: #8ee6c2;
+    border-color: rgba(52, 211, 153, 0.28);
+    background: rgba(16, 185, 129, 0.12);
   }
   .ls-reader-copy {
     color: #d1d5db;

@@ -65,6 +65,33 @@ const messageHandler = createMessageHandler(
         return { type: 'PONG', timestamp: Date.now() };
       }
 
+      case 'OPEN_READER': {
+        const params = new URLSearchParams({
+          conversation: message.conversationId,
+          target: message.messageId,
+        });
+        await browser.tabs.create({
+          url: browser.runtime.getURL(`reader/reader.html?${params.toString()}`),
+        });
+        return { ok: true };
+      }
+
+      case 'SYNC_DESKTOP': {
+        const result = (await browser.runtime.sendNativeMessage('com.mica.desktop', {
+          type: 'syncConversation',
+          protocolVersion: 1,
+          open: message.open,
+          conversation: message.conversation,
+        })) as { ok?: unknown; error?: unknown; messageCount?: unknown };
+        if (result?.ok !== true) {
+          throw new Error(typeof result?.error === 'string' ? result.error : '桌面端同步失败');
+        }
+        return {
+          ok: true,
+          ...(typeof result.messageCount === 'number' ? { messageCount: result.messageCount } : {}),
+        };
+      }
+
       default: {
         const _exhaustiveCheck: never = message;
         throw new Error(`Unknown message type: ${(_exhaustiveCheck as RuntimeMessage).type}`);
@@ -128,3 +155,4 @@ browser.runtime.onMessage.addListener(messageHandler);
 initialize().catch((error) => {
   logError('Background script initialization failed:', error);
 });
+

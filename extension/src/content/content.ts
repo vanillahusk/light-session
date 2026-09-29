@@ -147,10 +147,17 @@ function handleProxyReady(): void {
  * Shows a warning in the status bar if not.
  */
 function checkProxyStatus(): void {
-  if (!isProxyReadySatisfied(proxyReady)) {
-    logWarn('Fetch proxy did not signal ready within timeout');
-    // Don't show warning to user - proxy may still work, just didn't send ready message
-  }
+  if (isProxyReadySatisfied(proxyReady)) return;
+
+  // The page script can load before this document_idle content script starts listening,
+  // and ChatGPT may replace the root element carrying the durable marker. Probe the
+  // already-running page script instead of treating a missed one-shot signal as failure.
+  window.dispatchEvent(new CustomEvent('lightsession-proxy-ready-request'));
+  window.setTimeout(() => {
+    if (!isProxyReadySatisfied(proxyReady)) {
+      logDebug('Fetch proxy readiness could not be confirmed; reader requests may retry.');
+    }
+  }, 150);
 }
 
 // ============================================================================
@@ -255,7 +262,9 @@ function setupNavigationDetection(): void {
   let lastUrl = location.href;
   let navScheduled = false;
 
-  const scheduleNavSideEffects = (source: 'popstate' | 'pushState' | 'replaceState'): void => {
+  const scheduleNavSideEffects = (
+    source: 'popstate' | 'pushState' | 'replaceState' | 'hashchange' | 'urlPoll'
+  ): void => {
     // Coalesce rapid history events into a single tick.
     if (navScheduled) return;
     navScheduled = true;
@@ -294,6 +303,16 @@ function setupNavigationDetection(): void {
       scheduleNavSideEffects('popstate');
     }
   });
+
+  window.addEventListener('hashchange', () => {
+    if (location.href !== lastUrl) scheduleNavSideEffects('hashchange');
+  });
+
+  // ChatGPT invokes history methods in the page world, while extension content scripts run
+  // in an isolated world. Polling the inexpensive URL string covers those SPA transitions.
+  window.setInterval(() => {
+    if (location.href !== lastUrl) scheduleNavSideEffects('urlPoll');
+  }, 400);
 
   const originalPushState = history.pushState.bind(history);
   const originalReplaceState = history.replaceState.bind(history);

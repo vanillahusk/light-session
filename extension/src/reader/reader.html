@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>对话 · LightSession</title>
+    <link rel="stylesheet" href="reader.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <button id="outline-toggle" class="ghost mobile-only" type="button">提问</button>
+      <div class="heading">
+        <h1 id="conversation-title">对话</h1>
+        <span id="conversation-status">正在读取…</span>
+      </div>
+      <div class="find" role="search">
+        <span aria-hidden="true">⌕</span>
+        <input id="find-input" type="search" placeholder="在对话中查找" aria-label="在对话中查找" />
+        <span id="find-count"></span>
+        <button id="find-prev" class="icon" type="button" aria-label="上一个匹配项">↑</button>
+        <button id="find-next" class="icon" type="button" aria-label="下一个匹配项">↓</button>
+      </div>
+      <a id="chat-link" class="ghost" href="#">返回 ChatGPT</a>
+      <button id="export-button" class="primary" type="button">导出 Markdown</button>
+    </header>
+    <div id="app" class="layout" hidden>
+      <nav id="outline" aria-label="你的提问">
+        <h2>你的提问 <span id="turn-count"></span></h2>
+        <ol id="outline-list"></ol>
+      </nav>
+      <main class="column">
+        <div id="reader-content"></div>
+      </main>
+    </div>
+    <main id="reader-status" class="notice">正在准备阅读内容…</main>
+    <script src="reader.js"></script>
+  </body>
+</html>
+

@@ -73,6 +73,40 @@ export interface PingMessage {
   type: 'PING';
 }
 
+export interface OpenReaderMessage {
+  type: 'OPEN_READER';
+  conversationId: string;
+  messageId: string;
+}
+
+export interface OpenReaderResponse {
+  ok: true;
+}
+
+export interface SyncDesktopMessage {
+  type: 'SYNC_DESKTOP';
+  open: boolean;
+  conversation: {
+    version: 1;
+    id: string;
+    title: string;
+    sourceUrl: string;
+    updatedAt: string;
+    messages: Array<{
+      id: string;
+      role: 'user' | 'assistant';
+      text: string;
+      time?: number | null;
+      voice?: boolean;
+    }>;
+  };
+}
+
+export interface SyncDesktopResponse {
+  ok: true;
+  messageCount?: number;
+}
+
 /**
  * Health check response
  */
@@ -91,11 +125,21 @@ export interface ErrorResponse {
 /**
  * Union of all runtime messages
  */
-export type RuntimeMessage = GetSettingsMessage | SetSettingsMessage | PingMessage;
+export type RuntimeMessage =
+  | GetSettingsMessage
+  | SetSettingsMessage
+  | PingMessage
+  | OpenReaderMessage
+  | SyncDesktopMessage;
 
 /**
  * Union of all runtime responses
  */
 export type RuntimeResponse =
-  GetSettingsResponse | SetSettingsResponse | PongMessage | ErrorResponse;
+  | GetSettingsResponse
+  | SetSettingsResponse
+  | PongMessage
+  | OpenReaderResponse
+  | SyncDesktopResponse
+  | ErrorResponse;
 
